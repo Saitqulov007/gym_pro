@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} - {{ lead.fullname }} {% endblock title %}
+{% block leads %}active{% endblock %}
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Лид</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'leads' %}">Лиды</a></li>
+                    <li class="breadcrumb-item active">{{ lead.fullname }}</li>
+                </ol>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3">
+
+                <!-- Profile Image -->
+                <div class="card card-primary card-outline">
+                    <div class="card-body box-profile">
+                        <div class="text-center">
+                            <img class="profile-user-img img-fluid img-circle"
+                                src="
+                                {% if lead.profile.profile_picture %}
+                                {{ lead.profile.profile_picture.url }}
+                                {% else %}
+                                {% static 'assets/img/default-user.jpg' %}
+                                {% endif %}"
+                                alt="User profile picture">
+                        </div>
+                        <h3 class="profile-username text-center">{{ lead.fullname }}
+                            <form class="btn btn-sm" method="post" action="{% url 'leads' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="member" value="{{ lead.id }}">
+                                <input type="hidden" name="start" value="{{ now|date:'Y-m-d' }}T{{ now|date:'H:i' }}">
+                                <button title="Пришел" class="btn btn-success btn-sm {% if user.attended %} disabled {% endif %}" type="submit">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        </h3>
+                        <ul class="list-group list-group-unbordered mb-3">
+                            <li class="list-group-item">
+                                <b>Телефон</b> <a class="float-right">{{ lead.phone_number }}</a>
+                            </li>
+                            {% if lead.profile %}
+                            <li class="list-group-item">
+                                <b>Пол</b> <a class="float-right">{{ lead.profile.get_gender_display }}</a>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Дата рождения</b> <a class="float-right">{{ lead.profile.date_of_birth }}</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                        <div class="action-buttons text-center">
+                            <button class="btn btn-outline-primary" title="Доступ" data-toggle="modal"
+                                data-target="#modal-access"><i class="fa-solid fa-qrcode"></i></button>
+                            <button class="btn btn-outline-danger" title="Удалить" data-toggle="modal"
+                                data-target="#modal-delete-user"><i class="fa-solid fa-user-minus"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-primary">
+                    <div class="info-box bg-{% if lead.status == "new" %}success{% elif lead.status == "cancelled" %}danger{% elif lead.status == "confirmed" %}secondary{% else %}warning{% endif %}">
+                        <span class="info-box-icon">
+                            <i
+                            class="{% if lead.status == "new" %}fa-solid fa-person-walking{% elif lead.status == "cancelled" %}fa-solid fa-ban{% elif lead.status == "confirmed" %}fa-regular fa-circle-check{% else %}fa-solid fa-hourglass-start{% endif %}"
+                            >
+                        </i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-number">{{ lead.get_status_display }}</span>
+                            <span class="progress-description">
+                                {% if lead.comments %}
+                                {{ lead.comments }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+            <div class="col-md-9">
+                <div class="card">
+                    <form method="POST">
+                        <div class="card-header p-2">
+                            <ul class="nav nav-pills">
+                                <li class="nav-item"><a class="nav-link active" href="#edit" data-toggle="tab">Редактировать</a>
+                                </li>
+                                <button method="post" class="btn btn-success justify-content-end ml-auto" type="submit">Сохранять</button>
+                            </ul>
+                        </div><!-- /.card-header -->
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="edit">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <button method="post" class="btn btn-success float-right" type="submit">Сохранять</button>
+                                </div>
+                            </div>
+                            <!-- /.tab-content -->
+                        </div><!-- /.card-body -->
+                    </form>
+                </div>
+                <!-- /.nav-tabs-custom -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div><!-- /.container-fluid -->
+</section>
+<div class="modal fade" id="modal-delete-user">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Удалить пользователя?</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'lead_delete' lead.pk %}" method="post">
+                {% csrf_token %}
+                <p>Вы действительно хотите удалить этого пользователя?</p>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </div>
+                </form>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+{% endblock content %}
+{% block script %}
+    <script src="{% static 'assets/js/custom.js' %}"></script>
+{% endblock script %}
