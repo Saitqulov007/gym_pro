@@ -1,4 +1,3 @@
-from datetime import timedelta
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.utils.decorators import method_decorator
@@ -7,11 +6,8 @@ from django.views.generic import CreateView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from apps.common.choices import STATUS_CHOICES
-from apps.controls.models import Gym
 from apps.gym.forms import AddNewGymEquipmentForm, AddNewPlanForm, AddSubscriptionForm
-
-
-from apps.gym.models import GymEquipment, GymSession, Plan, Subscription
+from apps.gym.models import GymEquipment, Plan, Subscription
 from apps.users.models import User
 from apps.users.permissions import gym_manager_required
 from project.settings import ERROR_PATTERN
@@ -91,14 +87,11 @@ class AddSubscriptionView(View):
             print(form.errors)
         return redirect('user-details', form.data['member'])
 
-
     def get(self, request, pk):
         user = User.objects.get(id=pk)
         return render(request, 'users/add_subscription.html',
-                      {'user': user,
-                       'form': AddSubscriptionForm(request=request),
-                       'page_title': 'Абонемент',
-                       'next_step': 'Сохранить'})
+                      {'user': user, 'form': AddSubscriptionForm(request=request),
+                       'page_title': 'Абонемент', 'next_step': 'Сохранить'})
 
 
 class ArchivePlanView(View):

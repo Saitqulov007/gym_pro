@@ -34,7 +34,6 @@ class UserUpdateForm(forms.Form):
     telegram_id = forms.CharField(max_length=30, widget=forms.TextInput(
         attrs={'class': 'form-control'}), required=False, label="Телеграм ID")
 
-
     def __init__(self, *args, **kwargs):
         self.instance = kwargs.pop('instance', None)
         super().__init__(*args, **kwargs)
@@ -44,7 +43,6 @@ class UserUpdateForm(forms.Form):
             self.fields['first_name'].initial = self.instance.first_name
             self.fields['last_name'].initial = self.instance.last_name
             self.fields['telegram_id'].initial = self.instance.telegram_id
-
 
     def save(self, commit=True):
         if self.instance:
@@ -135,18 +133,16 @@ class UserRegistrationForm(UserCreationForm):
                   'last_name', 'password1', 'password2']
 
 
-
 class LeadForm(forms.ModelForm):
-
-    phone_number = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                   label="Номер телефона")
-    first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                 label="Имя")
-    last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                label="Фамилия")
+    phone_number = forms.CharField(max_length=20, widget=forms.TextInput
+                                   (attrs={'class': 'form-control'}), label="Номер телефона")
+    first_name = forms.CharField(max_length=30, widget=forms.TextInput
+                                 (attrs={'class': 'form-control'}), label="Имя")
+    last_name = forms.CharField(max_length=30, widget=forms.TextInput
+                                (attrs={'class': 'form-control'}), label="Фамилия")
     comments = forms.Textarea()
-    status = forms.ChoiceField(choices=Lead.STATUS_CHOICES, required=True, widget=forms.Select(attrs={'class': 'form-control'}),
-                                label="Статус")
+    status = forms.ChoiceField(choices=Lead.STATUS_CHOICES, required=True, widget=forms.Select
+                               (attrs={'class': 'form-control'}), label="Статус")
 
     class Meta:
         model = Lead

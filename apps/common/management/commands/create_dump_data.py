@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import random
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from apps.common.choices import STATUS_CHOICES
 
 from apps.controls.models import Gym, GymPlan
-from apps.gym.models import Plan, Subscription, GymSession
-from apps.users.models import User, GymRole, UserProfile
+from apps.gym.models import Plan, Subscription
+from apps.users.models import User, UserProfile
 
 
 class Command(BaseCommand):
@@ -79,10 +79,11 @@ class Command(BaseCommand):
         ]
 
         for i in range(1, 51):
-            name = f"{random.choice(gym_adjectives)} {random.choice(gym_nouns)} - {i}"
+            name = f"{random.choice(gym_adjectives)}{random.choice(gym_nouns)} - {i}"
             gym_plans = GymPlan.objects.all()
             gym = Gym.objects.create(
                 name=name, gym_plan=random.choice(gym_plans))
+
             standard_plan = Plan.objects.create(
                 name="Стандарт",
                 description="Стандартный план",
@@ -133,7 +134,6 @@ class Command(BaseCommand):
                     user_type='Member'
                 )
                 today = timezone.now()
-                thirty_days_ago = today - timedelta(days=30)
                 start_date = today - timedelta(days=30)
                 Subscription.objects.create(
                     member=user,

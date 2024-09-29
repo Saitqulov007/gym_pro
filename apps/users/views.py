@@ -2,6 +2,7 @@
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
@@ -14,11 +15,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from apps.common.choices import STATUS_CHOICES
 from apps.controls.models import Gym
 from apps.gym.forms import AddSubscriptionForm
 from django.core import serializers
-
 from apps.users.models import Lead, User
 from apps.gym.models import GymSession, Subscription
 from apps.users.forms import AttendanceForm, LeadForm, UserCreateForm, UserRegistrationForm, UserUpdateForm
@@ -140,12 +139,11 @@ class StaffListView(LoginRequiredMixin, View):
             members = paginator.page(paginator.num_pages)
 
         form = AttendanceForm()
-        return render(request, self.template_name, {'members': members,
-                                                    'form': form,
-                                                    'now': now,
-                                                    'add_subscription_form': AddSubscriptionForm(request=self.request)})
+        return render(request, self.template_name,
+                      {'members': members, 'form': form, 'now': now,
+                       'add_subscription_form': AddSubscriptionForm(request=self.request)})
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         form = AttendanceForm(request.POST, request=request)
         if form.is_valid():
             form.save(start=timezone.now())
@@ -208,19 +206,30 @@ class UserDetail(LoginRequiredMixin, View):
             'now': timezone.now(),
             'form': form
         }
+        # try:
+        #     if form.is_valid():
+        #         form.save()
+        #         return redirect('user-details', pk=pk)
+        #     else:
+        #         errors = ERROR_PATTERN.search(str(form.errors)).group(1)
+        #         messages.add_message(
+        #             request, messages.WARNING, f"Ошибка: {errors}")
+        #     return render(request, 'users/member.html', context)
+        # except:
+        #     messages.add_message(self.request, messages.WARNING,
+        #         f"Произошла ошибка, свяжитесь с администратором.")
+        #     return render(request, 'users/member.html', context)
         try:
             if form.is_valid():
                 form.save()
                 return redirect('user-details', pk=pk)
             else:
                 errors = ERROR_PATTERN.search(str(form.errors)).group(1)
-                messages.add_message(
-                    request, messages.WARNING, f"Ошибка: {errors}")
+                messages.add_message(request, messages.WARNING, f"Ошибка: {errors}")
             return render(request, 'users/member.html', context)
-        except:
-            messages.add_message(self.request, messages.WARNING,
-                                 f"Произошла ошибка, свяжитесь с администратором.")
-            return render(request, 'users/member.html', context)
+        except ValidationError:
+            messages.add_message(self.request, messages.WARNING, f"Ошибка: {errors}")
+        return render(request, 'users/member.html', context)
 
 
 @method_decorator(gym_manager_required(login_url='login'), name='dispatch')
@@ -233,7 +242,7 @@ class UserDelete(View):
             raise PermissionDenied
 
         user.delete()
-        messages.success(request, f"Пользователь { user.first_name } удален!")
+        messages.success(request, f"Пользователь {user.first_name} удален!")
 
         return redirect('users')
 
@@ -349,12 +358,12 @@ def my_subscription(request, tg_id):
                          "end_date": subscription.end_date.strftime("%d-%m-%Y"),
                          "left_sessions": subscription.left_sessions,
                          "used_sessions": subscription.used_sessions}, status=200)
-    except:
+    except Exception:
         return Response({"msg": "Абонемент не найден"}, status=404)
 
 
 @api_view(['GET'])
-def my_sessions(request, tg_id):
+def my_sessions(tg_id):
     try:
         subscription = User.objects.get(telegram_id=tg_id).subscription
         if subscription:
@@ -363,7 +372,7 @@ def my_sessions(request, tg_id):
             data = serializers.serialize('json', sessions)
             print(data)
         return Response({"sessions": data}, status=200)
-    except:
+    except Exception:
         return Response({"msg": "Абонемент не найден"}, status=404)
 
 

@@ -1,10 +1,8 @@
 import os
 import qrcode
 import random
-from django.utils import timezone
 from celery import shared_task
 from django.core.files import File
-
 from apps.users.models import Access, User
 
 

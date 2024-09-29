@@ -1,9 +1,7 @@
 from datetime import datetime
-from django.contrib import messages
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser
 from apps.common.choices import STATUS_CHOICES
-
 from apps.common.models import BaseModel
 from apps.users.managers import UserManager
 from apps.controls.models import Gym
@@ -166,4 +164,3 @@ class Lead(BaseModel):
     @property
     def fullname(self):
         return f"{self.first_name} {self.last_name}"
-
